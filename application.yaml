@@ -1,0 +1,29 @@
+server:
+  port: 8080
+spring:
+  datasource:
+    username: root
+    password: "85395435Dg@"
+    url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
+
+indexing-settings:
+  sites:
+    - url: https://www.playback.ru
+      name: PlayBack.Ru
+    - url: https://dimonvideo.ru
+      name: DimonVideo.ru
+    - url: https://www.svetlovka.ru/
+      name: Svetlovka.ru
+search-engine:
+  user-agent: MersinaSearchBot/1.0 (+https://example.com/bot)
+  referrer: http://www.google.com
+  waitingTime: 5s
+  timeout: 5000
+  maxDepth: 3
+logging.level.root: INFO

@@ -1,0 +1,129 @@
+package searchengine.services.lemmatization;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.lucene.morphology.LuceneMorphology;
+import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
+import org.jsoup.Jsoup;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import searchengine.model.Index;
+import searchengine.model.Lemma;
+import searchengine.model.Page;
+import searchengine.model.SiteEntity;
+import searchengine.repository.IndexRepository;
+import searchengine.repository.LemmaRepository;
+
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class LemmaService {
+
+    private final LemmaRepository lemmaRepository;
+    private final IndexRepository indexRepository;
+
+    public LuceneMorphology morphology;
+
+    @PostConstruct
+    public void init() {
+        try {
+            morphology = new RussianLuceneMorphology();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Map<String, Integer> getLemmas(String text) {
+        log.info("Calling method getLemmas - LemmaService");
+        Map<String, Integer> lemmas = new HashMap<>();
+        text = cleanTags(text).toLowerCase(Locale.ROOT);
+
+        String regex = "\\b[а-яА-ЯёЁ]+\\b";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(text);
+
+        try {
+            log.debug("Before morphology");
+            while (matcher.find()) {
+
+                String word = matcher.group();
+                if (filter(word)) continue;
+
+                List<String> wordBaseForms =
+                        morphology.getNormalForms(word);
+                String base = wordBaseForms.get(0);
+
+                if (lemmas.containsKey(base)) {
+                    log.debug("Found lemma {} in database", base);
+                    lemmas.put(base, lemmas.get(base) + 1);
+                    continue;
+                }
+                log.debug("Found lemma {} in text", base);
+                lemmas.put(base, 1);
+            }
+            log.debug("After morphology");
+        }catch (Exception e){
+           log.warn("Error while getting lemmas", e);
+        }
+        log.info("End of method getLemmas - LemmaService");
+        return lemmas;
+    }
+
+    @Transactional
+    public void saveLemmas(SiteEntity site, Page page, String html) {
+        log.info("Calling method saveLemmas - LemmaService by {}", site.getName());
+        Map<String, Integer> lemmaCounts = getLemmas(html);
+        for (Map.Entry<String, Integer> entry : lemmaCounts.entrySet()) {
+            String lemma = entry.getKey();
+            Integer count = entry.getValue();
+            Lemma exist = lemmaRepository.findByLemmaAndSite(lemma, site).orElse(null);
+
+            if (exist != null) {
+                log.debug("Found lemma not null {}", exist.getLemma());
+                lemmaRepository.incrementFrequencyById(exist.getId());
+                checkForSave(exist, page, count);
+            } else {
+                exist = Lemma.builder()
+                        .lemma(lemma).site(site).frequency(1).build();
+                lemmaRepository.save(exist);
+                log.debug("Saved lemma {}", exist.getLemma());
+
+                checkForSave(exist, page, count);
+            }
+        }
+        log.info("End of method saveLemmas - LemmaService by {}", site.getName());
+    }
+
+    @Transactional
+    public void checkForSave(Lemma lemma, Page page, Integer count) {
+        Optional<Index> exists = indexRepository.findByLemmaIdAndPageId(lemma.getId(), page.getId());
+        if (exists.isEmpty()) {
+            Index index = Index.builder()
+                    .lemma(lemma)
+                    .page(page)
+                    .rank(count.floatValue())
+                    .build();
+            indexRepository.save(index);
+        }
+    }
+
+    public boolean filter(String word) {
+        List<String> morphInfoList = morphology.getMorphInfo(word);
+        for (String info : morphInfoList) {
+            if (info.contains("СОЮЗ") || info.contains("МЕЖД") || info.contains("ПРЕДЛ") || info.contains("ЧАСТ")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String cleanTags(String text) {
+        return Jsoup.parse(text).text();
+    }
+}
