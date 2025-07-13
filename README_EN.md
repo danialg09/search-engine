@@ -1,3 +1,5 @@
+[Русская версия](README.md)
+
 # 🧠 Java Search Engine
 
 This is the final project of the "Java Developer from Scratch" course.  
