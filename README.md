@@ -139,7 +139,7 @@ logging.level.root: INFO
 
     - Убедитесь, что MySQL запущен и доступен
     - Создайте базу данных с именем `search_engine` (или другим, если измените в `application.yaml`)
-    - Проверьте настройки подключения в `src/main/resources/application.yaml` (логин, пароль, URL)
+    - Проверьте настройки подключения в `application.yaml` (логин, пароль, URL)
 
 3. **Собрать проект и запустить**
 
