@@ -19,7 +19,8 @@
 - Java 17+
 - Spring Boot 2.7+
 - Spring Data JPA
-- MySQL 8+
+- PostgreSQL 14+
+- Liquibase
 - Jsoup
 - Apache Lucene Morphology
 - Lombok
