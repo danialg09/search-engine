@@ -13,6 +13,7 @@ import searchengine.model.Page;
 import searchengine.model.SiteEntity;
 import searchengine.repository.IndexRepository;
 import searchengine.repository.LemmaRepository;
+import searchengine.services.siteops.SiteDataService;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -25,8 +26,7 @@ import java.util.regex.Pattern;
 @Slf4j
 public class LemmaService {
 
-    private final LemmaRepository lemmaRepository;
-    private final IndexRepository indexRepository;
+    private final SiteDataService service;
 
     public LuceneMorphology morphology;
 
@@ -75,42 +75,15 @@ public class LemmaService {
         return lemmas;
     }
 
-    @Transactional
     public void saveLemmas(SiteEntity site, Page page, String html) {
         log.info("Calling method saveLemmas - LemmaService by {}", site.getName());
         Map<String, Integer> lemmaCounts = getLemmas(html);
         for (Map.Entry<String, Integer> entry : lemmaCounts.entrySet()) {
             String lemma = entry.getKey();
             Integer count = entry.getValue();
-            Lemma exist = lemmaRepository.findByLemmaAndSite(lemma, site).orElse(null);
-
-            if (exist != null) {
-                log.debug("Found lemma not null {}", exist.getLemma());
-                lemmaRepository.incrementFrequencyById(exist.getId());
-                checkForSave(exist, page, count);
-            } else {
-                exist = Lemma.builder()
-                        .lemma(lemma).site(site).frequency(1).build();
-                lemmaRepository.save(exist);
-                log.debug("Saved lemma {}", exist.getLemma());
-
-                checkForSave(exist, page, count);
-            }
+            service.saveLemma(site, page, lemma, count);
         }
         log.info("End of method saveLemmas - LemmaService by {}", site.getName());
-    }
-
-    @Transactional
-    public void checkForSave(Lemma lemma, Page page, Integer count) {
-        Optional<Index> exists = indexRepository.findByLemmaIdAndPageId(lemma.getId(), page.getId());
-        if (exists.isEmpty()) {
-            Index index = Index.builder()
-                    .lemma(lemma)
-                    .page(page)
-                    .rank(count.floatValue())
-                    .build();
-            indexRepository.save(index);
-        }
     }
 
     public boolean filter(String word) {

@@ -27,5 +27,5 @@ search-engine:
   referrer: http://www.google.com
   waitingTime: 5s
   timeout: 5000
-  maxDepth: 3
+  maxDepth: 100
 logging.level.root: INFO
