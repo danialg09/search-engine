@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+       http://www.liquibase.org/xml/ns/dbchangelog
+       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!-- Таблица site -->
+    <changeSet id="1" author="danial">
+        <createTable tableName="site">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status_time" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_error" type="TEXT"/>
+            <column name="url" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Таблица page -->
+    <changeSet id="2" author="danial">
+        <createTable tableName="page">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="site_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="path" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Индекс по полю path -->
+    <changeSet id="3" author="danial">
+        <createIndex indexName="idx_page_path" tableName="page">
+            <column name="path"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Таблица lemma -->
+    <changeSet id="4" author="danial">
+        <createTable tableName="lemma">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="site_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lemma" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="frequency" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Таблица index -->
+    <changeSet id="5" author="danial">
+        <createTable tableName="index">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="page_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lemma_id" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rank" type="FLOAT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- Внешние ключи -->
+    <changeSet id="6" author="danial">
+        <addForeignKeyConstraint baseTableName="page" baseColumnNames="site_id"
+                                 constraintName="fk_page_site"
+                                 referencedTableName="site" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="lemma" baseColumnNames="site_id"
+                                 constraintName="fk_lemma_site"
+                                 referencedTableName="site" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="index" baseColumnNames="page_id"
+                                 constraintName="fk_index_page"
+                                 referencedTableName="page" referencedColumnNames="id"/>
+        <addForeignKeyConstraint baseTableName="index" baseColumnNames="lemma_id"
+                                 constraintName="fk_index_lemma"
+                                 referencedTableName="lemma" referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>
