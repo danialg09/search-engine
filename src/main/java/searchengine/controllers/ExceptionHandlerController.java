@@ -12,7 +12,7 @@ import searchengine.exception.IndexingException;
 public class ExceptionHandlerController {
 
     @ExceptionHandler({IndexingException.class})
-    public ResponseEntity<ErrorResponse> notFound(IndexingException e) {
+    public ResponseEntity<ErrorResponse> badRequest(IndexingException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(false, e.getMessage()));
     }
 
