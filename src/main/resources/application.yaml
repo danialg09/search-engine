@@ -2,15 +2,17 @@ server:
   port: 8080
 spring:
   datasource:
-    username: root
+    username: postgres
     password: "85395435Dg@"
-    url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:postgresql://localhost:5432/search_engine
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: false
-    properties:
-      hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+    drop-first: true
 
 indexing-settings:
   sites:
