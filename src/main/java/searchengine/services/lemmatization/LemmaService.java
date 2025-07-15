@@ -6,13 +6,8 @@ import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import searchengine.model.Index;
-import searchengine.model.Lemma;
 import searchengine.model.Page;
-import searchengine.model.SiteEntity;
-import searchengine.repository.IndexRepository;
-import searchengine.repository.LemmaRepository;
+import searchengine.model.Site;
 import searchengine.services.siteops.SiteDataService;
 
 import javax.annotation.PostConstruct;
@@ -75,7 +70,7 @@ public class LemmaService {
         return lemmas;
     }
 
-    public void saveLemmas(SiteEntity site, Page page, String html) {
+    public void saveLemmas(Site site, Page page, String html) {
         log.info("Calling method saveLemmas - LemmaService by {}", site.getName());
         Map<String, Integer> lemmaCounts = getLemmas(html);
         for (Map.Entry<String, Integer> entry : lemmaCounts.entrySet()) {

@@ -10,7 +10,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Entity
 @EqualsAndHashCode(of = "lemma")
-@Table(name = "lemma_table")
+@Table(name = "lemma")
 public class Lemma {
 
     @Id
@@ -20,7 +20,7 @@ public class Lemma {
 
     @ManyToOne
     @JoinColumn(name = "site_id", nullable = false)
-    private SiteEntity site;
+    private Site site;
 
     @Column(nullable = false)
     private String lemma;

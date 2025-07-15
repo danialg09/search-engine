@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import searchengine.config.Site;
+import searchengine.config.SiteConfig;
 import searchengine.model.*;
 import searchengine.repository.IndexRepository;
 import searchengine.repository.LemmaRepository;
@@ -27,19 +27,19 @@ public class SiteDataService {
     private final IndexRepository indexRepository;
 
     @Transactional
-    public SiteEntity createSite(Site site) {
-        SiteEntity siteEntity = new SiteEntity();
-        siteEntity.setUrl(site.getUrl());
-        siteEntity.setName(site.getName());
-        siteEntity.setStatus(Status.INDEXING);
-        siteEntity.setStatusTime(LocalDateTime.now());
-        log.info("SiteEntity creation finished");
-        return siteRepository.save(siteEntity);
+    public Site createSite(SiteConfig siteConfig) {
+        Site site = new Site();
+        site.setUrl(siteConfig.getUrl());
+        site.setName(siteConfig.getName());
+        site.setStatus(Status.INDEXING);
+        site.setStatusTime(LocalDateTime.now());
+        log.info("Site creation finished");
+        return siteRepository.save(site);
     }
 
     @Transactional
-    public void deleteAllBySite(Site site) {
-        SiteEntity exists = siteRepository.findByUrl(site.getUrl()).orElse(null);
+    public void deleteAllBySite(SiteConfig siteConfig) {
+        Site exists = siteRepository.findByUrl(siteConfig.getUrl()).orElse(null);
         if (exists != null) {
             List<Page> pages = pageRepository.findAllBySiteId(exists.getId());
             for (Page page : pages) {
@@ -49,7 +49,7 @@ public class SiteDataService {
             pageRepository.deleteAllBySiteId(exists.getId());
             siteRepository.delete(exists);
         }
-        log.info("Data for Site deleted");
+        log.info("Data for SiteConfig deleted");
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -63,7 +63,7 @@ public class SiteDataService {
     }
 
     @Transactional
-    public void saveLemma(SiteEntity site, Page page, String lemma, Integer count) {
+    public void saveLemma(Site site, Page page, String lemma, Integer count) {
         Lemma exist = lemmaRepository.findByLemmaAndSite(lemma, site).orElse(null);
 
         if (exist != null) {
@@ -94,19 +94,19 @@ public class SiteDataService {
     }
 
     @Transactional
-    public void updateStatus(SiteEntity siteEntity, Status status) {
-        SiteEntity exists = siteRepository.findById(siteEntity.getId()).orElse(null);
+    public void updateStatus(Site site, Status status) {
+        Site exists = siteRepository.findById(site.getId()).orElse(null);
         if (exists != null) {
             exists.setStatus(status);
             exists.setStatusTime(LocalDateTime.now());
             siteRepository.save(exists);
-            log.info("SiteEntity {} status change done {}", siteEntity, status);
+            log.info("Site {} status change done {}", site, status);
         }
     }
 
     @Transactional
-    public void updateStatusTime(SiteEntity siteEntity) {
-        SiteEntity exists = siteRepository.findById(siteEntity.getId()).orElse(null);
+    public void updateStatusTime(Site site) {
+        Site exists = siteRepository.findById(site.getId()).orElse(null);
         if (exists != null) {
             exists.setStatusTime(LocalDateTime.now());
             siteRepository.save(exists);
@@ -114,7 +114,7 @@ public class SiteDataService {
     }
 
     @Transactional
-    public void updateLastError(SiteEntity site, String error) {
+    public void updateLastError(Site site, String error) {
         site.setStatus(Status.FAILED);
         site.setLastError(error);
         site.setStatusTime(LocalDateTime.now());
@@ -127,7 +127,7 @@ public class SiteDataService {
     }
 
     @Transactional
-    public void deleteDataByPage(String path, SiteEntity site) {
+    public void deleteDataByPage(String path, Site site) {
         Optional<Page> page = pageRepository.findByPathAndSite(path, site);
         if (page.isPresent()) {
             List<Index> index = indexRepository.findAllByPageId(page.get().getId());

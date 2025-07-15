@@ -5,15 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.SearchEngineProperties;
-import searchengine.config.Site;
+import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
-import searchengine.exception.EntityNotFoundException;
 import searchengine.exception.IndexingException;
 import searchengine.indexing.WebCrawlerTask;
 import searchengine.model.*;
-import searchengine.repository.IndexRepository;
-import searchengine.repository.LemmaRepository;
-import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 import searchengine.services.lemmatization.LemmaService;
 import searchengine.services.siteops.SiteDataService;
@@ -51,9 +47,9 @@ public class IndexingService {
         }
         ExecutorService executorService = Executors.newFixedThreadPool(sites.getSites().size());
 
-        for (Site site : sites.getSites()) {
-            siteDataService.deleteAllBySite(site);
-            SiteEntity entity = siteDataService.createSite(site);
+        for (SiteConfig siteConfig : sites.getSites()) {
+            siteDataService.deleteAllBySite(siteConfig);
+            Site entity = siteDataService.createSite(siteConfig);
             siteDataService.updateStatus(entity, Status.INDEXING);
             executorService.submit(
                     () -> indexing(entity, entity.getUrl(), false)
@@ -62,7 +58,7 @@ public class IndexingService {
         executorService.shutdown();
     }
 
-    private void indexing(SiteEntity entity, String url, boolean isSinglePage) {
+    private void indexing(Site entity, String url, boolean isSinglePage) {
         RUNNING.set(true);
         log.info("Running set true for - {}", entity.getName());
         log.info("Indexing started for: {}", entity.getName());
@@ -94,7 +90,7 @@ public class IndexingService {
         }
         log.info("Indexing finished for: {}", entity.getName());
 
-        SiteEntity updated = siteRepository.findByUrl(entity.getUrl()).orElse(entity);
+        Site updated = siteRepository.findByUrl(entity.getUrl()).orElse(entity);
         Status finalStatus = updated.getStatus().equals(Status.FAILED) ? Status.FAILED : Status.INDEXED;
         siteDataService.updateStatus(updated, finalStatus);
 
@@ -110,7 +106,7 @@ public class IndexingService {
         }
         pool.shutdownNow();
 
-        for (SiteEntity site : siteRepository.findAll()) {
+        for (Site site : siteRepository.findAll()) {
             if (site.getStatus() != Status.INDEXED) {
                 site.setStatus(Status.FAILED);
                 site.setLastError("Индексация остановлена пользователем");
@@ -124,14 +120,14 @@ public class IndexingService {
     @Transactional
     public void indexPage(String url) {
 
-        Optional<Site> found = sites.getSites().stream()
-                .filter(site -> url.startsWith(site.getUrl()))
+        Optional<SiteConfig> found = sites.getSites().stream()
+                .filter(siteConfig -> url.startsWith(siteConfig.getUrl()))
                 .findFirst();
         if (found.isEmpty()) {
             throw new IndexingException(OUTSIDE_CONFIG_FILE);
         }
 
-        SiteEntity entity = siteRepository.findByUrl(found.get().getUrl()).orElseThrow();
+        Site entity = siteRepository.findByUrl(found.get().getUrl()).orElseThrow();
         String path = url.substring(found.get().getUrl().length());
         if (!path.startsWith("/")) {
             path = "/" + path;
