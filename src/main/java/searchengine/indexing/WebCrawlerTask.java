@@ -9,11 +9,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import searchengine.config.SearchEngineProperties;
 import searchengine.model.Page;
-import searchengine.model.SiteEntity;
+import searchengine.model.Site;
 import searchengine.services.lemmatization.LemmaService;
 import searchengine.services.siteops.SiteDataService;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RecursiveTask;
@@ -36,7 +35,7 @@ public class WebCrawlerTask extends RecursiveTask<LinkNode> {
     private final LemmaService lemmaService;
     private final SiteDataService service;
 
-    private final SiteEntity site;
+    private final Site site;
     private int currentDepth;
     private final String root;
     private String path;

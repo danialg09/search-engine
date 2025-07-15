@@ -7,7 +7,7 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Site {
+public class SiteConfig {
     private String url;
     private String name;
 }

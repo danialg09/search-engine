@@ -4,14 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import searchengine.config.Site;
+import searchengine.config.SiteConfig;
 import searchengine.config.SitesList;
 import searchengine.dto.statistics.*;
-import searchengine.model.SiteEntity;
+import searchengine.model.Site;
 import searchengine.repository.LemmaRepository;
 import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
-import searchengine.services.siteops.SiteDataService;
 import searchengine.services.statistics.StatisticsService;
 
 import java.time.LocalDateTime;
@@ -29,7 +28,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final PageRepository pageRepository;
 
     private final SitesList sites;
-    private final SiteDataService siteDataService;
 
     @Override
     @Transactional(readOnly = true)
@@ -40,9 +38,9 @@ public class StatisticsServiceImpl implements StatisticsService {
         total.setIndexing(true);
 
         List<DetailedStatisticsItem> detailed = new ArrayList<>();
-        List<Site> sitesList = sites.getSites();
-        for (Site site : sitesList) {
-            DetailedStatisticsItem item = statistics(site);
+        List<SiteConfig> sitesList = sites.getSites();
+        for (SiteConfig siteConfig : sitesList) {
+            DetailedStatisticsItem item = statistics(siteConfig);
             detailed.add(item);
         }
 
@@ -60,8 +58,8 @@ public class StatisticsServiceImpl implements StatisticsService {
         return response;
     }
 
-    public DetailedStatisticsItem statistics(Site site) {
-        SiteEntity exists = siteRepository.findByUrl(site.getUrl()).orElse(null);
+    public DetailedStatisticsItem statistics(SiteConfig siteConfig) {
+        Site exists = siteRepository.findByUrl(siteConfig.getUrl()).orElse(null);
         DetailedStatisticsItem item = new DetailedStatisticsItem();
 
         if (exists != null) {
@@ -81,8 +79,8 @@ public class StatisticsServiceImpl implements StatisticsService {
             long timestampMillis = LocalDateTime.now()
                     .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-            item.setName(site.getName());
-            item.setUrl(site.getUrl());
+            item.setName(siteConfig.getName());
+            item.setUrl(siteConfig.getUrl());
             item.setStatusTime(timestampMillis);
         }
         return item;
