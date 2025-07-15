@@ -14,12 +14,14 @@ spring:
 
 indexing-settings:
   sites:
-    - url: https://www.playback.ru
-      name: PlayBack.Ru
-    - url: https://dimonvideo.ru
-      name: DimonVideo.ru
-    - url: https://www.svetlovka.ru/
-      name: Svetlovka.ru
+#    - url: https://www.playback.ru
+#      name: PlayBack.Ru
+#    - url: https://dimonvideo.ru
+#      name: DimonVideo.ru
+#    - url: https://www.svetlovka.ru
+#      name: Svetlovka.ru
+    - url: https://sendel.ru
+      name: Sendel.ru
 search-engine:
   user-agent: MersinaSearchBot/1.0 (+https://example.com/bot)
   referrer: http://www.google.com

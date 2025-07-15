@@ -78,13 +78,11 @@ public class StatisticsServiceImpl implements StatisticsService {
             item.setError(exists.getLastError());
             item.setStatusTime(timestampMillis);
         } else {
-            SiteEntity entity = siteDataService.createSite(site);
-
-            long timestampMillis = entity.getStatusTime()
+            long timestampMillis = LocalDateTime.now()
                     .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
-            item.setName(entity.getName());
-            item.setUrl(entity.getUrl());
+            item.setName(site.getName());
+            item.setUrl(site.getUrl());
             item.setStatusTime(timestampMillis);
         }
         return item;
