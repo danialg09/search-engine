@@ -31,6 +31,7 @@ public class SiteDataService {
         SiteEntity siteEntity = new SiteEntity();
         siteEntity.setUrl(site.getUrl());
         siteEntity.setName(site.getName());
+        siteEntity.setStatus(Status.INDEXING);
         siteEntity.setStatusTime(LocalDateTime.now());
         log.info("SiteEntity creation finished");
         return siteRepository.save(siteEntity);
