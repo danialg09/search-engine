@@ -63,6 +63,37 @@ public class SiteDataService {
     }
 
     @Transactional
+    public void saveLemma(SiteEntity site, Page page, String lemma, Integer count) {
+        Lemma exist = lemmaRepository.findByLemmaAndSite(lemma, site).orElse(null);
+
+        if (exist != null) {
+            log.debug("Found lemma not null {}", exist.getLemma());
+            lemmaRepository.incrementFrequencyById(exist.getId());
+            checkForSave(exist, page, count);
+        } else {
+            exist = Lemma.builder()
+                    .lemma(lemma).site(site).frequency(1).build();
+            lemmaRepository.save(exist);
+            log.debug("Saved lemma {}", exist.getLemma());
+
+            checkForSave(exist, page, count);
+        }
+    }
+
+    @Transactional
+    public void checkForSave(Lemma lemma, Page page, Integer count) {
+        Optional<Index> exists = indexRepository.findByLemmaIdAndPageId(lemma.getId(), page.getId());
+        if (exists.isEmpty()) {
+            Index index = Index.builder()
+                    .lemma(lemma)
+                    .page(page)
+                    .rank(count.floatValue())
+                    .build();
+            indexRepository.save(index);
+        }
+    }
+
+    @Transactional
     public void updateStatus(SiteEntity siteEntity, Status status) {
         SiteEntity exists = siteRepository.findById(siteEntity.getId()).orElse(null);
         if (exists != null) {
@@ -110,4 +141,5 @@ public class SiteDataService {
         }
         log.info("Data for Page {} deleted", path);
     }
+
 }
