@@ -1,7 +1,6 @@
 package searchengine.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.dto.response.IndexingResponse;
 import searchengine.dto.searching.SearchingResponse;
@@ -20,33 +19,33 @@ public class ApiController {
     private final SearchService searchService;
 
     @GetMapping("/startIndexing")
-    public ResponseEntity<IndexingResponse> startIndexing() {
+    public IndexingResponse startIndexing() {
         indexingService.startIndexing();
-        return ResponseEntity.ok(new IndexingResponse(true));
+        return new IndexingResponse(true);
     }
 
     @GetMapping("/statistics")
-    public ResponseEntity<StatisticsResponse> statistics() {
-        return ResponseEntity.ok(statisticsServiceImpl.getStatistics());
+    public StatisticsResponse statistics() {
+        return statisticsServiceImpl.getStatistics();
     }
 
     @GetMapping("/stopIndexing")
-    public ResponseEntity<IndexingResponse> stopIndexing() {
+    public IndexingResponse stopIndexing() {
         indexingService.stopFullIndexing();
-        return ResponseEntity.ok(new IndexingResponse(true));
+        return new IndexingResponse(true);
     }
 
     @PostMapping("/indexPage")
-    public ResponseEntity<IndexingResponse> indexPage(@RequestParam String url) {
+    public IndexingResponse indexPage(@RequestParam String url) {
         indexingService.indexPage(url);
-        return ResponseEntity.ok(new IndexingResponse(true));
+        return new IndexingResponse(true);
     }
 
     @GetMapping("/search")
-    public ResponseEntity<SearchingResponse> search(@RequestParam String query,
-                                                    @RequestParam(defaultValue = "") String site,
-                                                    @RequestParam(defaultValue = "0") int offset,
-                                                    @RequestParam(defaultValue = "20") int limit) {
-        return ResponseEntity.ok(searchService.search(query, site, offset, limit));
+    public SearchingResponse search(@RequestParam String query,
+                                    @RequestParam(defaultValue = "") String site,
+                                    @RequestParam(defaultValue = "0") int offset,
+                                    @RequestParam(defaultValue = "20") int limit) {
+        return searchService.search(query, site, offset, limit);
     }
 }
