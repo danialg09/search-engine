@@ -93,7 +93,7 @@ public class SiteDataService {
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateStatus(Site site, Status status) {
         Site exists = siteRepository.findById(site.getId()).orElse(null);
         if (exists != null) {
