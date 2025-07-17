@@ -87,16 +87,13 @@ public class IndexingService {
             return;
         } finally {
             RUNNING.set(false);
+            log.info("RUNNING SET FALSE");
         }
         log.info("Indexing finished for: {}", entity.getName());
 
         Site updated = siteRepository.findByUrl(entity.getUrl()).orElse(entity);
         Status finalStatus = updated.getStatus().equals(Status.FAILED) ? Status.FAILED : Status.INDEXED;
         siteDataService.updateStatus(updated, finalStatus);
-
-        RUNNING.set(false);
-        log.info("RUNNING SET FALSE");
-        log.info("INDEXING DONE FOR {}", entity.getName());
     }
 
     @Transactional
