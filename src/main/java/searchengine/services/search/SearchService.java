@@ -85,7 +85,7 @@ public class SearchService {
 
         for (RelevanceItem relevanceItem : relevanceItems) {
             SearchingData sd = createData(relevanceItem, lemmas);
-            data.add(sd);
+            if (sd != null) data.add(sd);
         }
 
         return data;
@@ -97,47 +97,58 @@ public class SearchService {
         Page page = item.getPage();
         String html = page.getContent();
         Document doc = Jsoup.parse(html);
+        String snippet = getSnippet(page, lemmas);
 
         data.setSite(page.getSite().getUrl());
         data.setSiteName(page.getSite().getName());
         data.setTitle(doc.title());
         data.setRelevance(item.getRelevance());
         data.setUri(page.getPath());
-        data.setSnippet(getSnippet(page, lemmas));
+        data.setSnippet(snippet);
 
-        return data;
+        return snippet.isBlank() ? null : data;
     }
 
     public String getSnippet(Page page, List<String> lemmas) {
-        log.info("Getting snippet for lemmas: {}", lemmas);
-        String html = page.getContent();
-        Document doc = Jsoup.parse(html);
-        String text = doc.body().text();
+        String text = Jsoup.parse(page.getContent()).body().text();
+        String lemma = lemmas.get(0).toLowerCase();
+        String[] words = text.split("\\s+");
 
-        String mainLemma = lemmas.get(0).toLowerCase();
-
-        String textLower = text.toLowerCase();
-        int index = textLower.indexOf(mainLemma);
-
-        if (index == -1) {
-            return text.length() > 100 ? text.substring(0, 100) + "..." : text;
+        int lemmaIndex = -1;
+        for (int i = 0; i < words.length; i++) {
+            if (words[i].toLowerCase().contains(lemma)) {
+                lemmaIndex = i;
+                break;
+            }
+        }
+        if (lemmaIndex == -1) {
+            return "";
         }
 
-        int snippetRadius = 75;
-        int start = Math.max(0, index - snippetRadius);
-        int end = Math.min(text.length(), index + mainLemma.length() + snippetRadius);
+        int start = Math.max(0, lemmaIndex - 10);
+        int end = Math.min(words.length, lemmaIndex + 11);
 
-        String snippet = text.substring(start, end);
+        StringBuilder snippet = new StringBuilder();
 
-        for (String lemma : lemmas) {
-            snippet = snippet
-                    .replaceAll("(?i)" + Pattern.quote(lemma), "<b>" + lemma + "</b>");
+        if (start > 0) snippet.append("... ");
+
+        for (int i = start; i < end; i++) {
+            String word = words[i];
+            boolean isLemma = lemmas.stream()
+                    .anyMatch(l -> word.toLowerCase().startsWith(l.toLowerCase()));
+
+            if (isLemma) {
+                snippet.append("<b>").append(word).append("</b>");
+            } else {
+                snippet.append(word);
+            }
+
+            if (i < end - 1) snippet.append(" ");
         }
 
-        if (start > 0) snippet = "..." + snippet;
-        if (end < text.length()) snippet = snippet + "...";
+        if (end < words.length) snippet.append(" ...");
 
-        return snippet;
+        return snippet.toString();
     }
 
     public List<RelevanceItem> calculateRelevance(List<Page> pages) {
