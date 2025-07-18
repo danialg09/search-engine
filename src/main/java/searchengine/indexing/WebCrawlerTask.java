@@ -8,6 +8,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import searchengine.config.SearchEngineProperties;
+import searchengine.dto.indexing.PageData;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.services.lemmatization.LemmaService;
@@ -90,17 +91,17 @@ public class WebCrawlerTask extends RecursiveTask<LinkNode> {
         String abs = makeUrlAbsolute(path);
         String min = checkLink(abs);
 
-        Connection connection = Jsoup.connect(abs);
-
         try {
-            Document doc = connection
-                    .userAgent(properties.getUserAgent())
-                    .referrer(properties.getReferrer())
-                    .timeout(properties.getTimeout())
-                    .get();
+            PageData pageData = checkContent(abs);
+            if (pageData == null || pageData.document() == null) {
+                return;
+            }
+            Document doc = pageData.document();
+            int statusCode = pageData.statusCode();
+
             Page page = Page.builder()
                     .site(site)
-                    .code(connection.response().statusCode())
+                    .code(statusCode)
                     .content(doc.html())
                     .path(min)
                     .build();
@@ -125,13 +126,11 @@ public class WebCrawlerTask extends RecursiveTask<LinkNode> {
         String abs = makeUrlAbsolute(url);
 
         try {
-            Connection connection = Jsoup.connect(abs);
-
-            Document doc = connection
-                    .userAgent(properties.getUserAgent())
-                    .referrer(properties.getReferrer())
-                    .timeout(properties.getTimeout())
-                    .get();
+            PageData pageData = checkContent(abs);
+            if (pageData == null || pageData.document() == null) {
+                return links;
+            }
+            Document doc = pageData.document();
 
             Elements elements = doc.select("a[href]");
 
@@ -183,5 +182,21 @@ public class WebCrawlerTask extends RecursiveTask<LinkNode> {
         if (!shortLink.startsWith("/")) shortLink = "/" + shortLink;
 
         return shortLink;
+    }
+
+    private PageData checkContent(String abs) throws IOException {
+        Connection connection = Jsoup.connect(abs)
+                .userAgent(properties.getUserAgent())
+                .referrer(properties.getReferrer())
+                .timeout(properties.getTimeout());
+
+        Connection.Response response = connection.ignoreContentType(true).execute();
+
+        String contentType = response.contentType();
+        if (contentType == null || !contentType.startsWith("text/html")) {
+            log.warn("Skipping non-HTML content type: {} from {}", contentType, abs);
+            return null;
+        }
+        return new PageData(response.parse(), response.statusCode());
     }
 }
