@@ -36,7 +36,7 @@ public class IndexingService {
     private final SiteRepository siteRepository;
     private final LemmaService lemmaService;
 
-    private ForkJoinPool pool;
+    private ForkJoinPool pool = new ForkJoinPool();
 
     private final SitesList sites;
 
@@ -59,13 +59,17 @@ public class IndexingService {
     }
 
     private void indexing(Site entity, String url, boolean isSinglePage) {
-        ConcurrentHashMap<String, String> siteMap = new ConcurrentHashMap<>();
-        pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
-
         RUNNING.set(true);
         log.info("Running set true for - {}", entity.getName());
         log.info("Indexing started for: {}", entity.getName());
 
+
+        if (pool.isShutdown() || pool.isTerminated()) {
+            pool = new ForkJoinPool();
+            log.info("ForkJoinPool restarted");
+        }
+
+        ConcurrentHashMap<String, String> siteMap = new ConcurrentHashMap<>();
         WebCrawlerTask task = new WebCrawlerTask(
                 siteMap, properties, lemmaService, siteDataService,
                 entity, 0, entity.getUrl(), url, isSinglePage
@@ -75,11 +79,18 @@ public class IndexingService {
         pool.invoke(task);
         pool.shutdown();
 
-        RUNNING.set(false);
-        log.info("RUNNING SET FALSE");
+        try {
+            pool.awaitTermination(10, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Indexing interrupted for {}", entity.getName(), e);
+            return;
+        } finally {
+            RUNNING.set(false);
+            log.info("RUNNING SET FALSE");
+        }
         log.info("Indexing finished for: {}", entity.getName());
 
-        siteMap.clear();
         Site updated = siteRepository.findByUrl(entity.getUrl()).orElse(entity);
         Status finalStatus = updated.getStatus().equals(Status.FAILED) ? Status.FAILED : Status.INDEXED;
         siteDataService.updateStatus(updated, finalStatus);
