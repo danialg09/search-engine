@@ -12,8 +12,7 @@ spring:
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
     enabled: true
-    drop-first: true
-
+    drop-first: false
 indexing-settings:
   sites:
 #    - url: https://www.playback.ru
@@ -29,5 +28,5 @@ search-engine:
   referrer: http://www.google.com
   waitingTime: 5s
   timeout: 5000
-  maxDepth: 100
+  maxDepth: 10
 logging.level.root: INFO

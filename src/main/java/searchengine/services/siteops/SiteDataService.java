@@ -62,7 +62,7 @@ public class SiteDataService {
         return pageRepository.save(page);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveLemma(Site site, Page page, String lemma, Integer count) {
         Lemma exist = lemmaRepository.findByLemmaAndSite(lemma, site).orElse(null);
 
