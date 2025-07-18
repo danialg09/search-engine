@@ -24,7 +24,7 @@ import static java.lang.Thread.sleep;
 @AllArgsConstructor
 @Slf4j
 @Builder
-public class WebCrawlerTask extends RecursiveTask<LinkNode> {
+public class WebCrawlerTask extends RecursiveTask<Void> {
 
     private static final Pattern FILE_PATTERN =
             Pattern.compile(".*\\.(pdf|jpg|jpeg|png|gif|bmp|doc|docx|xls|xlsx|ppt|pptx|webp)$"
@@ -43,7 +43,7 @@ public class WebCrawlerTask extends RecursiveTask<LinkNode> {
     private boolean onePage;
 
     @Override
-    protected LinkNode compute() {
+    protected Void compute() {
         log.info("Starting compute - {} by {}", Thread.currentThread().getName(), site.getName());
         if (Thread.currentThread().isInterrupted()) {
             log.warn("Thread is interrupted");
@@ -61,7 +61,6 @@ public class WebCrawlerTask extends RecursiveTask<LinkNode> {
 
         List<WebCrawlerTask> subTasks = new ArrayList<>();
         List<String> linkList = getChildLinks(path);
-        LinkNode node = new LinkNode(path, currentDepth);
         saveData(path);
 
         for(String path : linkList) {
@@ -77,13 +76,12 @@ public class WebCrawlerTask extends RecursiveTask<LinkNode> {
                 log.warn("Thread is interrupted");
                 break;
             }
-            LinkNode childNode = task.join();
-            if (childNode != null) {
-                node.addChild(childNode);
-            }
+            log.info("Joining subTask {}", task.path);
+            task.join();
+            log.info("Joined subTask {}", task.path);
         }
         log.info("Finished compute - {} by {}", Thread.currentThread().getName(), site.getName());
-        return node;
+        return null;
     }
 
     private void saveData(String path) {
@@ -122,6 +120,7 @@ public class WebCrawlerTask extends RecursiveTask<LinkNode> {
     }
 
     private List<String> getChildLinks(String url) {
+        log.info("Getting child links for {}", url);
         List<String> links = new ArrayList<>();
         String abs = makeUrlAbsolute(url);
 
