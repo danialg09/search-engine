@@ -13,6 +13,7 @@ import searchengine.services.siteops.SiteDataService;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -76,7 +77,9 @@ public class LemmaService {
         for (Map.Entry<String, Integer> entry : lemmaCounts.entrySet()) {
             String lemma = entry.getKey();
             Integer count = entry.getValue();
+            log.info("Before saving lemma {}", lemma);
             service.saveLemma(site, page, lemma, count);
+            log.info("After saving lemma {}", lemma);
         }
         log.info("End of method saveLemmas - LemmaService by {}", site.getName());
     }

@@ -33,7 +33,7 @@ public class SiteDataService {
         site.setName(siteConfig.getName());
         site.setStatus(Status.INDEXING);
         site.setStatusTime(LocalDateTime.now());
-        log.info("Site creation finished");
+        log.debug("Site creation finished");
         return siteRepository.save(site);
     }
 
@@ -49,13 +49,13 @@ public class SiteDataService {
             pageRepository.deleteAllBySiteId(exists.getId());
             siteRepository.delete(exists);
         }
-        log.info("Data for SiteConfig deleted");
+        log.debug("Data for SiteConfig deleted");
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Page createPage(Page page) {
         if (pageRepository.findByPath(page.getPath()).isPresent()) {
-            log.info("Page already exists");
+            log.debug("Page already exists");
             return null;
         }
         log.info("Page creation finished {}", page.getPath());
@@ -63,7 +63,8 @@ public class SiteDataService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void saveLemma(Site site, Page page, String lemma, Integer count) {
+    public synchronized void saveLemma(Site site, Page page, String lemma, Integer count) {
+        log.info("Method saveLemma of SiteDataService with lemma {}", lemma);
         Lemma exist = lemmaRepository.findByLemmaAndSite(lemma, site).orElse(null);
 
         if (exist != null) {
@@ -78,6 +79,7 @@ public class SiteDataService {
 
             checkForSave(exist, page, count);
         }
+        log.info("End of method saveLemma of SiteDataService with lemma {}", lemma);
     }
 
     @Transactional
@@ -141,5 +143,4 @@ public class SiteDataService {
         }
         log.info("Data for Page {} deleted", path);
     }
-
 }

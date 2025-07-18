@@ -57,7 +57,7 @@ public class WebCrawlerTask extends RecursiveTask<Void> {
             return null;
         }
         service.updateStatusTime(site);
-        log.info("StatusTime updated successfully");
+        log.debug("StatusTime updated successfully");
 
         List<WebCrawlerTask> subTasks = new ArrayList<>();
         List<String> linkList = getChildLinks(path);
