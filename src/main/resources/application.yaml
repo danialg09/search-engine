@@ -5,6 +5,9 @@ spring:
     username: postgres
     password: "85395435Dg@"
     url: jdbc:postgresql://localhost:5432/search_engine
+    hikari:
+      maximum-pool-size: 100
+      connection-timeout: 40000
   jpa:
     hibernate:
       ddl-auto: none
@@ -27,6 +30,6 @@ search-engine:
   user-agent: MersinaSearchBot/1.0 (+https://example.com/bot)
   referrer: http://www.google.com
   waitingTime: 5s
-  timeout: 5000
+  timeout: 3000
   maxDepth: 10
 logging.level.root: INFO
