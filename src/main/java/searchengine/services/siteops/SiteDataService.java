@@ -58,13 +58,13 @@ public class SiteDataService {
             log.debug("Page already exists");
             return null;
         }
-        log.info("Page creation finished {}", page.getPath());
+        log.debug("Page creation finished {}", page.getPath());
         return pageRepository.save(page);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public synchronized void saveLemma(Site site, Page page, String lemma, Integer count) {
-        log.info("Method saveLemma of SiteDataService with lemma {}", lemma);
+    public void saveLemma(Site site, Page page, String lemma, Integer count) {
+        log.debug("Method saveLemma of SiteDataService with lemma {}", lemma);
         Lemma exist = lemmaRepository.findByLemmaAndSite(lemma, site).orElse(null);
 
         if (exist != null) {
@@ -79,7 +79,7 @@ public class SiteDataService {
 
             checkForSave(exist, page, count);
         }
-        log.info("End of method saveLemma of SiteDataService with lemma {}", lemma);
+        log.debug("End of method saveLemma of SiteDataService with lemma {}", lemma);
     }
 
     @Transactional

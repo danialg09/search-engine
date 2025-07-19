@@ -6,6 +6,8 @@ import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.services.siteops.SiteDataService;
@@ -13,7 +15,6 @@ import searchengine.services.siteops.SiteDataService;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,7 +37,7 @@ public class LemmaService {
     }
 
     public Map<String, Integer> getLemmas(String text) {
-        log.info("Calling method getLemmas - LemmaService");
+        log.debug("Calling method getLemmas - LemmaService");
         Map<String, Integer> lemmas = new HashMap<>();
         text = cleanTags(text).toLowerCase(Locale.ROOT);
 
@@ -67,21 +68,19 @@ public class LemmaService {
         }catch (Exception e){
            log.warn("Error while getting lemmas", e);
         }
-        log.info("End of method getLemmas - LemmaService");
+        log.debug("End of method getLemmas - LemmaService");
         return lemmas;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveLemmas(Site site, Page page, String html) {
-        log.info("Calling method saveLemmas - LemmaService by {}", site.getName());
+        log.debug("Calling method saveLemmas - LemmaService by {}", site.getName());
         Map<String, Integer> lemmaCounts = getLemmas(html);
         for (Map.Entry<String, Integer> entry : lemmaCounts.entrySet()) {
             String lemma = entry.getKey();
             Integer count = entry.getValue();
-            log.info("Before saving lemma {}", lemma);
             service.saveLemma(site, page, lemma, count);
-            log.info("After saving lemma {}", lemma);
         }
-        log.info("End of method saveLemmas - LemmaService by {}", site.getName());
     }
 
     public boolean filter(String word) {
