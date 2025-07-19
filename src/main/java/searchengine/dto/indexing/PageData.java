@@ -1,6 +1,6 @@
 package searchengine.dto.indexing;
 
-import org.jsoup.nodes.Document;
+import org.jsoup.Connection;
 
-public record PageData(Document document, int statusCode) {
+public record PageData(Connection connection, int statusCode) {
 }

@@ -64,7 +64,7 @@ public class WebCrawlerTask extends RecursiveTask<Void> {
         saveData(path);
 
         for(String path : linkList) {
-            log.info("Forking subTask for {}", path);
+            log.debug("Forking subTask for {}", path);
             WebCrawlerTask task = new WebCrawlerTask(visited, properties, lemmaService
                     , service, site, currentDepth + 1, root, path, false);
             task.fork();
@@ -76,25 +76,25 @@ public class WebCrawlerTask extends RecursiveTask<Void> {
                 log.warn("Thread is interrupted");
                 break;
             }
-            log.info("Joining subTask {}", task.path);
+            log.debug("Joining subTask {}", task.path);
             task.join();
-            log.info("Joined subTask {}", task.path);
+            log.debug("Joined subTask {}", task.path);
         }
         log.info("Finished compute - {} by {}", Thread.currentThread().getName(), site.getName());
         return null;
     }
 
     private void saveData(String path) {
-        log.info("Saving data from {} by - {}", path, Thread.currentThread().getName());
+        log.debug("Saving data from {} by - {}", path, Thread.currentThread().getName());
         String abs = makeUrlAbsolute(path);
         String min = checkLink(abs);
 
         try {
             PageData pageData = checkContent(abs);
-            if (pageData == null || pageData.document() == null) {
+            if (pageData == null || pageData.connection() == null) {
                 return;
             }
-            Document doc = pageData.document();
+            Document doc = pageData.connection().get();
             int statusCode = pageData.statusCode();
 
             Page page = Page.builder()
@@ -103,15 +103,11 @@ public class WebCrawlerTask extends RecursiveTask<Void> {
                     .content(doc.html())
                     .path(min)
                     .build();
-            log.info("Saving page {}", page.getPath());
+            log.debug("Saving page {}", page.getPath());
             Page saved = service.createPage(page);
 
             if (saved != null) {
-                log.info("Saving lemmas for {}", path);
                 lemmaService.saveLemmas(site, saved, doc.html());
-                log.info("Saved lemmas for {}", path);
-            } else {
-                return;
             }
         } catch (IOException e) {
             log.warn("IOException : {}", e.getMessage());
@@ -120,16 +116,16 @@ public class WebCrawlerTask extends RecursiveTask<Void> {
     }
 
     private List<String> getChildLinks(String url) {
-        log.info("Getting child links for {}", url);
+        log.debug("Getting child links for {}", url);
         List<String> links = new ArrayList<>();
         String abs = makeUrlAbsolute(url);
 
         try {
             PageData pageData = checkContent(abs);
-            if (pageData == null || pageData.document() == null) {
+            if (pageData == null || pageData.connection() == null) {
                 return links;
             }
-            Document doc = pageData.document();
+            Document doc = pageData.connection().get();
 
             Elements elements = doc.select("a[href]");
 
@@ -196,6 +192,6 @@ public class WebCrawlerTask extends RecursiveTask<Void> {
             log.warn("Skipping non-HTML content type: {} from {}", contentType, abs);
             return null;
         }
-        return new PageData(response.parse(), response.statusCode());
+        return new PageData(connection, response.statusCode());
     }
 }
