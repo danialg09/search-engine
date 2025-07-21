@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.RecursiveTask;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.lang.Thread.sleep;
 
@@ -53,15 +54,18 @@ public class WebCrawlerTask extends RecursiveTask<Void> {
             return null;
         }
         if (onePage) {
-            saveData(path);
+            saveData(Collections.singletonList(path));
             return null;
+        }
+        if (currentDepth == 0) {
+            saveData(Collections.singletonList(path));
         }
         service.updateStatusTime(site);
         log.debug("StatusTime updated successfully");
 
         List<WebCrawlerTask> subTasks = new ArrayList<>();
         List<String> linkList = getChildLinks(path);
-        saveData(path);
+        saveData(linkList);
 
         for(String path : linkList) {
             log.debug("Forking subTask for {}", path);
@@ -84,49 +88,49 @@ public class WebCrawlerTask extends RecursiveTask<Void> {
         return null;
     }
 
-    private void saveData(String path) {
-        log.debug("Saving data from {} by - {}", path, Thread.currentThread().getName());
-        String abs = makeUrlAbsolute(path);
-        String min = checkLink(abs);
+    private void saveData(List<String> linkList) {
+        List<Page> pages = new ArrayList<>();
+        for (String path : linkList) {
+            log.debug("Saving data from {} by - {}", path, Thread.currentThread().getName());
+            String abs = checkAbsoluteLink(path);
+            String min = checkShortLink(abs);
 
-        try {
-            PageData pageData = checkContent(abs);
-            if (pageData == null || pageData.connection() == null) {
-                return;
+            try {
+                PageData pageData = checkContent(abs);
+                if (pageData == null || pageData.connection() == null) {
+                    return;
+                }
+                Document doc = pageData.connection().get();
+                int statusCode = pageData.statusCode();
+
+                Page page = Page.builder()
+                        .site(site)
+                        .code(statusCode)
+                        .content(doc.html())
+                        .path(min)
+                        .build();
+                log.info("Saving page {}", page.getPath());
+                pages.add(page);
+            } catch (IOException e) {
+                log.warn("IOException : {}", e.getMessage());
+                service.updateLastError(site, e.getMessage());
             }
-            Document doc = pageData.connection().get();
-            int statusCode = pageData.statusCode();
-
-            Page page = Page.builder()
-                    .site(site)
-                    .code(statusCode)
-                    .content(doc.html())
-                    .path(min)
-                    .build();
-            log.debug("Saving page {}", page.getPath());
-            Page saved = service.createPage(page);
-
-            if (saved != null) {
-                lemmaService.saveLemmas(site, saved, doc.html());
-            }
-        } catch (IOException e) {
-            log.warn("IOException : {}", e.getMessage());
-            service.updateLastError(site, e.getMessage());
         }
+        List<Page> saved = service.createPagesBatch(pages);
+        saved.stream().filter(Objects::nonNull)
+                .forEach(p -> lemmaService.saveLemmas(site, p, p.getContent()));
     }
 
     private List<String> getChildLinks(String url) {
         log.debug("Getting child links for {}", url);
         List<String> links = new ArrayList<>();
-        String abs = makeUrlAbsolute(url);
+        String abs = checkAbsoluteLink(url);
 
         try {
             PageData pageData = checkContent(abs);
-            if (pageData == null || pageData.connection() == null) {
-                return links;
-            }
-            Document doc = pageData.connection().get();
+            if (pageData == null || pageData.connection() == null) return links;
 
+            Document doc = pageData.connection().get();
             Elements elements = doc.select("a[href]");
 
             for (Element el : elements) {
@@ -138,15 +142,7 @@ public class WebCrawlerTask extends RecursiveTask<Void> {
                     log.debug("Skipping link {}", absLink);
                     continue;
                 }
-                String link = checkLink(absLink);
-
-                boolean alreadyInDb = service.pageExists(link);
-                log.debug("Already in DB {} for link {}", alreadyInDb, link);
-
-                if (!alreadyInDb && visited.putIfAbsent(absLink, link) == null) {
-                    log.debug("Adding link {}", link);
-                    links.add(link);
-                }
+                links.add(checkShortLink(absLink));
             }
 
             sleep(properties.getWaitingTime().toMillis());
@@ -157,10 +153,16 @@ public class WebCrawlerTask extends RecursiveTask<Void> {
             Thread.currentThread().interrupt();
             service.updateLastError(site, "Индексация была прервана");
         }
-        return links;
+
+        Set<String> existingPaths = service.checkExistingPages(links);
+
+        return links.stream()
+                .filter(link -> !existingPaths.contains(link))
+                .filter(link -> visited.putIfAbsent(link, link) == null)
+                .collect(Collectors.toList());
     }
 
-    private String makeUrlAbsolute(String url) {
+    private String checkAbsoluteLink(String url) {
         if (url.startsWith("https://")) {
             return url;
         }
@@ -170,7 +172,7 @@ public class WebCrawlerTask extends RecursiveTask<Void> {
         return root + url;
     }
 
-    private String checkLink(String link) {
+    private String checkShortLink(String link) {
         String shortLink = link.substring(root.length());
 
         if (shortLink.isBlank()) shortLink = "/";

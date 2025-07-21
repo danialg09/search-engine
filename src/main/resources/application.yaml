@@ -9,6 +9,12 @@ spring:
       maximum-pool-size: 100
       connection-timeout: 40000
   jpa:
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
     hibernate:
       ddl-auto: none
     show-sql: false

@@ -13,8 +13,10 @@ import searchengine.repository.PageRepository;
 import searchengine.repository.SiteRepository;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +39,15 @@ public class SiteDataService {
         return siteRepository.save(site);
     }
 
+    public List<Page> createPagesBatch(List<Page> pages) {
+        log.info("Saved {} pages", pages.size());
+        return pageRepository.saveAll(pages);
+    }
+
+    public Set<String> checkExistingPages(List<String> pages) {
+        return new HashSet<>(pageRepository.findPathsByPathIn(pages));
+    }
+
     @Transactional
     public void deleteAllBySite(SiteConfig siteConfig) {
         Site exists = siteRepository.findByUrl(siteConfig.getUrl()).orElse(null);
@@ -50,16 +61,6 @@ public class SiteDataService {
             siteRepository.delete(exists);
         }
         log.debug("Data for SiteConfig deleted");
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Page createPage(Page page) {
-        if (pageRepository.findByPath(page.getPath()).isPresent()) {
-            log.debug("Page already exists");
-            return null;
-        }
-        log.debug("Page creation finished {}", page.getPath());
-        return pageRepository.save(page);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
