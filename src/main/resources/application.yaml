@@ -6,7 +6,7 @@ spring:
     password: "85395435Dg@"
     url: jdbc:postgresql://localhost:5432/search_engine
     hikari:
-      maximum-pool-size: 100
+      maximum-pool-size: 96
       connection-timeout: 40000
   jpa:
     properties:
