@@ -36,12 +36,12 @@ public class SiteDataService {
         site.setStatus(Status.INDEXING);
         site.setStatusTime(LocalDateTime.now());
         log.debug("Site creation finished");
-        return siteRepository.save(site);
+        return siteRepository.saveAndFlush(site);
     }
 
     public List<Page> createPagesBatch(List<Page> pages) {
         log.info("Saved {} pages", pages.size());
-        return pageRepository.saveAll(pages);
+        return pageRepository.saveAllAndFlush(pages);
     }
 
     public Set<String> checkExistingPages(List<String> pages) {
@@ -75,7 +75,7 @@ public class SiteDataService {
         } else {
             exist = Lemma.builder()
                     .lemma(lemma).site(site).frequency(1).build();
-            lemmaRepository.save(exist);
+            lemmaRepository.saveAndFlush(exist);
             log.debug("Saved lemma {}", exist.getLemma());
 
             checkForSave(exist, page, count);
@@ -92,7 +92,7 @@ public class SiteDataService {
                     .page(page)
                     .rank(count.floatValue())
                     .build();
-            indexRepository.save(index);
+            indexRepository.saveAndFlush(index);
         }
     }
 
@@ -102,7 +102,7 @@ public class SiteDataService {
         if (exists != null) {
             exists.setStatus(status);
             exists.setStatusTime(LocalDateTime.now());
-            siteRepository.save(exists);
+            siteRepository.saveAndFlush(exists);
             log.info("Site {} status change done {}", site, status);
         }
     }
@@ -112,7 +112,7 @@ public class SiteDataService {
         Site exists = siteRepository.findById(site.getId()).orElse(null);
         if (exists != null) {
             exists.setStatusTime(LocalDateTime.now());
-            siteRepository.save(exists);
+            siteRepository.saveAndFlush(exists);
         }
     }
 
@@ -121,7 +121,7 @@ public class SiteDataService {
         site.setStatus(Status.FAILED);
         site.setLastError(error);
         site.setStatusTime(LocalDateTime.now());
-        siteRepository.save(site);
+        siteRepository.saveAndFlush(site);
     }
 
     @Transactional(readOnly = true)
