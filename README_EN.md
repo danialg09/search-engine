@@ -17,10 +17,10 @@ A local search engine has been implemented that crawls specified websites, extra
 
 ## ⚙️ Technologies Used
 
-- Java 17+
-- Spring Boot 2.7+
+- Java 21+
+- Spring Boot 3.5+
 - Spring Data JPA
-- PostgreSQL 14+
+- PostgreSQL 15+
 - Liquibase
 - Jsoup
 - Apache Lucene Morphology
@@ -123,55 +123,56 @@ logging.level.root: INFO
 - `search-engine.maxDepth` — maximum link crawl depth
 - `logging.level.root` — application logging level
 
-#### 🚀 Local Project Launch
+## 🚀 Local Project Launch
 
-**Requirements:**
+### Requirements
 
-- Java 17 or higher
+- Java 21 or higher
+- Docker & Docker Compose
 - Maven
-- MySQL (local or remote)
 
-**Steps to Launch:**
+### Steps to Run
 
 1. **Clone the repository**
 
     ```bash
-    git clone <repository_URL>
+    git clone <REPO_URL>
     cd <project_folder_name>
     ```
 
-2. **Set up the database**
+2. **Start the Database**
 
-    - Make sure MySQL is running and accessible
-    - Create a database named `search_engine` (or other name if changed in `application.yaml`)
-    - Check DB credentials in `application.yaml`
+   The project uses PostgreSQL via Docker.
 
-3. **Build and run the project**
+     ```bash
+    cd docker
+    docker compose up -d
+    cd ..
+    ```
+   > **Note:** The database will be available on port **5433** (to avoid conflicts with local Postgres on 5432).
+
+3. **Build and Run the Project**
 
     ```bash
     mvn clean install
     mvn spring-boot:run
     ```
 
-4. **Access the application**
+4. **Verify Launch**
 
-    - Open `http://localhost:8080` in your browser
-    - Web UI will be available on the main page
+    - By default, the application is available at:  
+      `http://localhost:8080`
 
 5. **Use the API**
 
-    - Start full indexing:  
+    - **Start full indexing** (GET):  
       `http://localhost:8080/api/startIndexing`
-    - Perform search:  
+    - **Search** (GET):  
       `http://localhost:8080/api/search?query=your_query`
-
-**Optional API:**
-
-- Stop indexing:  
-  `http://localhost:8080/api/stopIndexing`
-
-- Index a single page (POST request):  
-  `http://localhost:8080/api/indexPage` with URL param
+    - **Stop indexing** (GET):  
+      `http://localhost:8080/api/stopIndexing`
+    - **Index specific page** (POST):  
+      `http://localhost:8080/api/indexPage` (parameter `url`)
 
 ---
 
