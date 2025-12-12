@@ -1,5 +1,6 @@
 package searchengine.services.lemmatization;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.lucene.morphology.LuceneMorphology;
@@ -12,7 +13,6 @@ import searchengine.model.Page;
 import searchengine.model.Site;
 import searchengine.services.siteops.SiteDataService;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
