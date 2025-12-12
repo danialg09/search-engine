@@ -41,7 +41,7 @@ public class LemmaService {
         Map<String, Integer> lemmas = new HashMap<>();
         text = cleanTags(text).toLowerCase(Locale.ROOT);
 
-        String regex = "\\b[а-яА-ЯёЁ]+\\b";
+        String regex = "\\p{IsCyrillic}+";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(text);
 

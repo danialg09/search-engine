@@ -4,7 +4,7 @@ spring:
   datasource:
     username: postgres
     password: "85395435Dg@"
-    url: jdbc:postgresql://localhost:5432/search_engine
+    url: jdbc:postgresql://localhost:5433/search_engine
     hikari:
       maximum-pool-size: 96
       connection-timeout: 40000
