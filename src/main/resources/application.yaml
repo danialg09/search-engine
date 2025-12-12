@@ -3,7 +3,7 @@ server:
 spring:
   datasource:
     username: postgres
-    password: "85395435Dg@"
+    password: postgres
     url: jdbc:postgresql://localhost:5433/search_engine
     hikari:
       maximum-pool-size: 96

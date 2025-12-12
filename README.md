@@ -16,10 +16,10 @@
 
 ## ⚙️ Используемые технологии
 
-- Java 17+
-- Spring Boot 2.7+
+- Java 21+
+- Spring Boot 3.5+
 - Spring Data JPA
-- PostgreSQL 14+
+- PostgreSQL 15+
 - Liquibase
 - Jsoup
 - Apache Lucene Morphology
@@ -125,9 +125,9 @@ logging.level.root: INFO
 
 ### Требования
 
-- Java 17 или выше
+- Java 21 или выше
+- Docker и Docker Compose
 - Maven
-- MySQL (локально или удалённо)
 
 ### Шаги запуска
 
@@ -138,11 +138,16 @@ logging.level.root: INFO
     cd <название_папки_проекта>
     ```
 
-2. **Настроить базу данных**
+2. **Запустить базу данных**
 
-    - Убедитесь, что MySQL запущен и доступен
-    - Создайте базу данных с именем `search_engine` (или другим, если измените в `application.yaml`)
-    - Проверьте настройки подключения в `application.yaml` (логин, пароль, URL)
+   Проект использует PostgreSQL в Docker.
+
+     ```bash
+    cd docker
+    docker compose up -d
+    cd ..
+    ```
+   > **Важно:** База данных будет доступна на порту **5433** (чтобы не конфликтовать с локальным Postgres).
 
 3. **Собрать проект и запустить**
 
@@ -159,20 +164,14 @@ logging.level.root: INFO
 
 5. **Использовать API**
 
-    - Для запуска полной индексации отправьте GET-запрос:  
+    - **Запуск полной индексации** (GET):  
       `http://localhost:8080/api/startIndexing`
-    - Для поиска используйте:  
-      `http://localhost:8080/api/search?query=ваш_запрос`
-
----
-
-### Дополнительно
-
-- Для остановки индексации:  
-  `http://localhost:8080/api/stopIndexing`
-
-- Для индексирования одной страницы (POST-запрос):  
-  `http://localhost:8080/api/indexPage` с параметром URL страницы
+    - **Поиск** (GET):  
+      `http://localhost:8080/api/search?query=java`
+    - **Остановка индексации** (GET):  
+      `http://localhost:8080/api/stopIndexing`
+    - **Индексация одной страницы** (POST):  
+      `http://localhost:8080/api/indexPage` (параметр `url`)
 
 ---
 
