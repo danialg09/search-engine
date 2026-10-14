@@ -22,7 +22,6 @@ import searchengine.repository.PageRepository;
 import searchengine.services.lemmatization.LemmaService;
 
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service

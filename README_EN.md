@@ -1,8 +1,7 @@
-[Русская версия](README.md)
+[Russian Version](README.md)
 
 # 🧠 Java Search Engine
 
-This is the final project of the "Java Developer from Scratch" course.  
 A local search engine has been implemented that crawls specified websites, extracts page content, performs text lemmatization, stores data in a database, and provides keyword search with relevance ranking and snippets.
 
 ## 🔍 Main Features
@@ -80,16 +79,26 @@ server:
 
 spring:
   datasource:
-    username: root
-    password: "password"
-    url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+    username: postgres
+    password: postgres
+    url: jdbc:postgresql://localhost:5433/search_engine
+    hikari:
+      maximum-pool-size: 96
+      connection-timeout: 40000
   jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
     properties:
-      hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
-
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+    drop-first: false
 indexing-settings:
   sites:
     - url: https://www.playback.ru
@@ -111,7 +120,7 @@ logging.level.root: INFO
 ### 🔧 Key Parameters & Local Launch Instructions
 
 - `server.port` — port on which the application runs
-- `spring.datasource.*` — MySQL database connection settings
+- `spring.datasource.*` — database connection settings
 - `spring.jpa.hibernate.ddl-auto` — database schema management mode
   - e.g. `update` automatically updates the schema
 - `indexing-settings.sites` — list of sites to crawl with URLs and names

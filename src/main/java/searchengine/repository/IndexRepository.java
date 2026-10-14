@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.model.Index;
-import searchengine.model.Lemma;
 import searchengine.model.Page;
 
 import java.util.List;
@@ -17,8 +16,6 @@ public interface IndexRepository extends JpaRepository<Index, Integer> {
 
     List<Index> findAllByLemmaId(Integer lemmaId);
     List<Index> findAllByPageId(Integer pageId);
-
-    void deleteAllByPageId(Integer id);
 
     @Modifying
     @Transactional

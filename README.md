@@ -2,8 +2,6 @@
 
 # 🧠 Поисковый движок на Java
 
-Это итоговый проект курса «Java-разработчик с нуля». Реализован локальный поисковый движок, который выполняет обход заданных сайтов, извлекает содержимое страниц, производит лемматизацию текста, сохраняет данные в базу и предоставляет поиск по ключевым словам с релевантностью и сниппетами.
-
 ## 🔍 Основной функционал
 
 - Многопоточный обход сайтов с использованием ForkJoinPool
@@ -79,16 +77,26 @@ server:
 
 spring:
   datasource:
-    username: root
-    password: "password"
-    url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true
+    username: postgres
+    password: postgres
+    url: jdbc:postgresql://localhost:5433/search_engine
+    hikari:
+      maximum-pool-size: 96
+      connection-timeout: 40000
   jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
     properties:
-      hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
-
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+    drop-first: false
 indexing-settings:
   sites:
     - url: https://www.playback.ru
@@ -110,7 +118,7 @@ logging.level.root: INFO
 ### Основные параметры:
 
 - `server.port` — порт, на котором запускается приложение  
-- `spring.datasource.*` — настройки подключения к базе данных MySQL  
+- `spring.datasource.*` — настройки подключения к базе данных  
 - `spring.jpa.hibernate.ddl-auto` — режим управления схемой базы данных  
   - Например, `update` автоматически обновляет схему  
 - `indexing-settings.sites` — список сайтов для обхода с их URL и названиями  

@@ -124,11 +124,6 @@ public class SiteDataService {
         siteRepository.saveAndFlush(site);
     }
 
-    @Transactional(readOnly = true)
-    public boolean pageExists(String path) {
-        return pageRepository.findByPath(path).isPresent();
-    }
-
     @Transactional
     public void deleteDataByPage(String path, Site site) {
         Optional<Page> page = pageRepository.findByPathAndSite(path, site);
