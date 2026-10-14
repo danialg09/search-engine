@@ -1,0 +1,2 @@
+src/main/resources/** linguist-vendored
+*.js linguist-detectable=false
