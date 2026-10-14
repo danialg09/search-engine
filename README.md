@@ -1,18 +1,20 @@
-[English version](README_EN.md)
+[Russian Version](README_RU.md)
 
-# 🧠 Поисковый движок на Java
+# 🧠 Java Search Engine
 
-## 🔍 Основной функционал
+A local search engine has been implemented that crawls specified websites, extracts page content, performs text lemmatization, stores data in a database, and provides keyword search with relevance ranking and snippets.
 
-- Многопоточный обход сайтов с использованием ForkJoinPool
-- Лемматизация текста (русский язык) через Apache Lucene Morphology
-- Индексация страниц в базу данных MySQL
-- REST API для запуска/остановки индексации и выполнения поиска
-- Расчёт релевантности результатов
-- Генерация сниппетов
-- Простая веб-админка на Thymeleaf для управления
+## 🔍 Main Features
 
-## ⚙️ Используемые технологии
+- Multithreaded website crawling using ForkJoinPool
+- Text lemmatization (Russian language) via Apache Lucene Morphology
+- Indexing pages into database
+- REST API for starting/stopping indexing and performing searches
+- Calculation of search result relevance
+- Snippet generation
+- Simple web admin interface using Thymeleaf for management
+
+## ⚙️ Technologies Used
 
 - Java 21+
 - Spring Boot 3.5+
@@ -24,52 +26,52 @@
 - Lombok
 - Maven
 
-## 🧪 Основные команды API
+## 🧪 Main API Endpoints
 
-| Метод | URL               | Описание                              |
-|-------|-------------------|-------------------------------------|
-| GET   | /api/statistics    | Получить текущую статистику          |
-| GET   | /api/startIndexing | Запуск полной индексации всех сайтов |
-| GET   | /api/stopIndexing  | Прерывание текущей индексации        |
-| POST  | /api/indexPage     | Индексация одной страницы            |
-| GET   | /api/search        | Поиск по словам (с поддержкой морфологии) |
+| Method | URL               | Description                          |
+|--------|-------------------|------------------------------------|
+| GET    | /api/statistics    | Get current statistics              |
+| GET    | /api/startIndexing | Start full indexing of all sites   |
+| GET    | /api/stopIndexing  | Stop current indexing process       |
+| POST   | /api/indexPage     | Index a single page                 |
+| GET    | /api/search        | Search by keywords (with morphology support) |
 
-## 🏗️ Архитектура проекта
+## 🏗️ Project Architecture
 
-- **Controllers** — REST-контроллеры для API и UI
-- **DTO** — классы запросов и ответов (statistics, search, errors)
+- **Controllers** — REST controllers for API and UI
+- **DTO** — request and response classes (statistics, search, errors)
 - **Services**
-    - IndexingService — многопоточный обход и индексирование
-    - LemmaService — морфологический анализ и работа с леммами
-    - SearchService — поиск по леммам с ранжированием
-    - SiteDataService — работа с сайтами и страницами
-    - StatisticsService — генерация статистики
-- **Model** — JPA-сущности: SiteEntity, Page, Lemma, Index
-- **Repositories** — Spring Data репозитории для каждой сущности
+    - IndexingService — multithreaded crawling and indexing
+    - LemmaService — morphological analysis and lemma processing
+    - SearchService — lemma-based search with ranking
+    - SiteDataService — managing sites and pages
+    - StatisticsService — statistics generation
+- **Model** — JPA entities: SiteEntity, Page, Lemma, Index
+- **Repositories** — Spring Data repositories for each entity
 - **Resources**
-    - templates/index.html — веб-интерфейс
-    - static/ — JS, CSS, изображения
-    - application.yaml — конфигурация запуска
+    - `templates/index.html` — web interface
+    - `static/` — JS, CSS, images
+    - `application.yaml` — launch configuration
 
-## 📈 Алгоритм поиска
+## 📈 Search Algorithm
 
-1. Запрос → лемматизация → отфильтровка по стоп-словам
-2. Ищутся все страницы, содержащие каждую из лемм
-3. Вычисляется абсолютная и относительная релевантность
-4. Результаты сортируются по убыванию
-5. Формируется сниппет (с фрагментом текста и выделением `<b>`)
+1. Query → lemmatization → filtering by stop words
+2. Find all pages containing each lemma
+3. Calculate absolute and relative relevance
+4. Sort results by descending relevance
+5. Generate snippet (with text fragment and `<b>` highlights)
 
-## 📌 Примечания
+## 📌 Notes
 
-- При ошибке индексации страница помечается статусом FAILED, с сообщением.
-- Запросы с ошибочными ссылками (4xx, 5xx) игнорируются.
-- Можно запустить индексацию одной страницы через веб-интерфейс или API.
+- If indexing fails, the page is marked with status FAILED and an error message
+- Requests to broken links (4xx, 5xx) are ignored
+- You can start indexing a single page via the web interface or API
 
-## ⚙️ Настройка конфигурации
+## ⚙️ Configuration
 
-В проекте используется файл `application.yaml` для настройки сервера, подключения к базе данных, параметров индексации и поискового движка.
+The project uses an `application.yaml` file to configure the server, database connection, indexing, and search engine settings.
 
-Пример конфигурации:
+Example configuration:
 
 ```yaml
 server:
@@ -91,7 +93,7 @@ spring:
         order_inserts: true
         order_updates: true
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     show-sql: false
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
@@ -115,72 +117,72 @@ search-engine:
 
 logging.level.root: INFO
 ```
-### Основные параметры:
+### 🔧 Key Parameters & Local Launch Instructions
 
-- `server.port` — порт, на котором запускается приложение  
-- `spring.datasource.*` — настройки подключения к базе данных  
-- `spring.jpa.hibernate.ddl-auto` — режим управления схемой базы данных  
-  - Например, `update` автоматически обновляет схему  
-- `indexing-settings.sites` — список сайтов для обхода с их URL и названиями  
-- `search-engine.user-agent` — User-Agent для запросов при индексации  
-- `search-engine.referrer` — заголовок Referer для HTTP-запросов  
-- `search-engine.waitingTime` — время ожидания между запросами к сайту  
-- `search-engine.timeout` — таймаут HTTP-запросов в миллисекундах  
-- `search-engine.maxDepth` — максимальная глубина обхода ссылок  
-- `logging.level.root` — уровень логирования приложения  
+- `server.port` — port on which the application runs
+- `spring.datasource.*` — database connection settings
+- `spring.jpa.hibernate.ddl-auto` — database schema management mode
+  - e.g. `update` automatically updates the schema
+- `indexing-settings.sites` — list of sites to crawl with URLs and names
+- `indexing-settings.sites` — list of sites to crawl with URLs and names
+- `search-engine.user-agent` — User-Agent header for crawling requests
+- `search-engine.referrer` — HTTP Referer header for requests
+- `search-engine.waitingTime` — delay between requests to a site
+- `search-engine.timeout` — HTTP request timeout in milliseconds
+- `search-engine.maxDepth` — maximum link crawl depth
+- `logging.level.root` — application logging level
 
-## 🚀 Инструкция по локальному запуску проекта
+## 🚀 Local Project Launch
 
-### Требования
+### Requirements
 
-- Java 21 или выше
-- Docker и Docker Compose
+- Java 21 or higher
+- Docker & Docker Compose
 - Maven
 
-### Шаги запуска
+### Steps to Run
 
-1. **Клонировать репозиторий**
+1. **Clone the repository**
 
     ```bash
-    git clone <URL_репозитория>
-    cd <название_папки_проекта>
+    git clone <REPO_URL>
+    cd <project_folder_name>
     ```
 
-2. **Запустить базу данных**
+2. **Start the Database**
 
-   Проект использует PostgreSQL в Docker.
+   The project uses PostgreSQL via Docker.
 
      ```bash
     cd docker
     docker compose up -d
     cd ..
     ```
-   > **Важно:** База данных будет доступна на порту **5433** (чтобы не конфликтовать с локальным Postgres).
+   > **Note:** The database will be available on port **5433** (to avoid conflicts with local Postgres on 5432).
 
-3. **Собрать проект и запустить**
+3. **Build and Run the Project**
 
     ```bash
     mvn clean install
     mvn spring-boot:run
     ```
 
-4. **Проверить запуск**
+4. **Verify Launch**
 
-    - По умолчанию приложение будет доступно по адресу:  
+    - By default, the application is available at:  
       `http://localhost:8080`
-    - Веб-интерфейс доступен по корневому пути или согласно настройкам
 
-5. **Использовать API**
+5. **Use the API**
 
-    - **Запуск полной индексации** (GET):  
+    - **Start full indexing** (GET):  
       `http://localhost:8080/api/startIndexing`
-    - **Поиск** (GET):  
-      `http://localhost:8080/api/search?query=java`
-    - **Остановка индексации** (GET):  
+    - **Search** (GET):  
+      `http://localhost:8080/api/search?query=your_query`
+    - **Stop indexing** (GET):  
       `http://localhost:8080/api/stopIndexing`
-    - **Индексация одной страницы** (POST):  
-      `http://localhost:8080/api/indexPage` (параметр `url`)
+    - **Index specific page** (POST):  
+      `http://localhost:8080/api/indexPage` (parameter `url`)
 
 ---
 
-Если возникнут вопросы, проверьте логи в консоли или настройте уровень логирования в `application.yaml`.
+If needed, adjust log level in `application.yaml` and watch the console for debugging.
